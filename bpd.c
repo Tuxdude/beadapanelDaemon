@@ -161,7 +161,7 @@ static int bp_interface;
 static unsigned char bp_ep;
 static libusb_hotplug_callback_handle bp_cb1, bp_cb2;
 static libusb_device_handle *bp_handle = NULL;
-static struct libusb_transfer *bp_transfer = NULL;
+/* static struct libusb_transfer *bp_transfer = NULL; */
 static sem_t bp_sem;
 
 static int get_interface_ep(libusb_device *dev) {
