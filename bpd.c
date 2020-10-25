@@ -518,7 +518,7 @@ static int streamBP(void *arg)
 
 int main(int argc, char *argv[])
 {
-    int rc, fp, opt, fps, bs;
+    int fp, opt, fps, bs;
     pthread_t tidp;
     char path[FB_PATH_LENGTH] = "/dev/fb0";
     char rpipe[FB_PATH_LENGTH] = "/dev/bpread";
