@@ -50,17 +50,16 @@ static const char usage_str[] = "Usage:\n"
                               " -h Help\n"
                               " -f Update frequency(fps). e.g. -f 30\n";
 
-void set_verbosity(unsigned int vb)
-{
+void set_verbosity(unsigned int vb) {
     verbosity = vb;
 }
 
-void _msg(unsigned level, const char *fmt, ...)
-{
-    if (level < 2)
+void _msg(unsigned level, const char *fmt, ...) {
+    if (level < 2) {
         level = 2;
-    else if (level > 7)
+    } else if (level > 7) {
         level = 7;
+    }
 
     if (level <= verbosity) {
         static const char levels[8][6] = {
@@ -103,12 +102,12 @@ void _msg(unsigned level, const char *fmt, ...)
     } while (0)
 
 /********************  Panel-Link Daemon  ***********************************/
-unsigned short checkSum16(unsigned short *buf, int nword)
-{
+unsigned short checkSum16(unsigned short *buf, int nword) {
     unsigned long sum;
 
-    for (sum = 0; nword > 0; nword--)
+    for (sum = 0; nword > 0; nword--) {
         sum += *buf++;
+    }
     sum = (sum >> 16) + (sum & 0xffff);
     sum += (sum >> 16);
 
@@ -165,8 +164,7 @@ static libusb_device_handle *bp_handle = NULL;
 static struct libusb_transfer *bp_transfer = NULL;
 static sem_t bp_sem;
 
-static int get_interface_ep(libusb_device *dev)
-{
+static int get_interface_ep(libusb_device *dev) {
     int rc, i, j;
     struct libusb_config_descriptor *config;
     const struct libusb_interface_descriptor *id;
@@ -181,9 +179,9 @@ static int get_interface_ep(libusb_device *dev)
         if ((id->bInterfaceClass == 255) && (id->bInterfaceSubClass == 0)) {
             for (j = 0; j < id->bNumEndpoints; j++) {
                 debug("interface:%d endpoint:%d bmAttributes:%x Address:%x\n", i, j,
-                id->endpoint[j].bmAttributes, id->endpoint[j].bEndpointAddress);
+                        id->endpoint[j].bmAttributes, id->endpoint[j].bEndpointAddress);
                 if ((id->endpoint[j].bmAttributes == LIBUSB_TRANSFER_TYPE_BULK)
-                    && ((id->endpoint[j].bEndpointAddress & LIBUSB_ENDPOINT_IN) == LIBUSB_ENDPOINT_OUT)) {
+                        && ((id->endpoint[j].bEndpointAddress & LIBUSB_ENDPOINT_IN) == LIBUSB_ENDPOINT_OUT)) {
                     bp_interface = i;
                     bp_ep = id->endpoint[j].bEndpointAddress;
                     libusb_free_config_descriptor(config);
@@ -198,8 +196,7 @@ static int get_interface_ep(libusb_device *dev)
     return -1;
 }
 
-static int bp_attach(libusb_device *dev)
-{
+static int bp_attach(libusb_device *dev) {
     int rc;
 
     if (bp_handle) {
@@ -219,8 +216,7 @@ static int bp_attach(libusb_device *dev)
 
 /*    bp_transfer = libusb_alloc_transfer(0); */
 
-    if ((rc = libusb_claim_interface(bp_handle, bp_interface)) != LIBUSB_SUCCESS)
-    {
+    if ((rc = libusb_claim_interface(bp_handle, bp_interface)) != LIBUSB_SUCCESS) {
         err("claim interface error:%s\n", libusb_error_name(rc));
 
         if (bp_handle) {
@@ -236,21 +232,21 @@ static int bp_attach(libusb_device *dev)
     return 0;
 }
 
-static void find_device(void)
-{
+static void find_device(void) {
     int i;
     libusb_device **devs;
     struct libusb_device_descriptor desc;
 
-    if (libusb_get_device_list(NULL, &devs) < 0)
+    if (libusb_get_device_list(NULL, &devs) < 0) {
         return;
+    }
 
     for (i = 0; devs[i]; ++i) {
         libusb_get_device_descriptor(devs[i], &desc);
 
 /*        debug("desc.idVendor =%x\n", desc.idVendor); */
         if ((desc.idVendor == 0x4e58) && (desc.idProduct == 0x1001) &&
-            (desc.bDeviceClass == 0) && (desc.bDeviceSubClass == 0)) {
+                (desc.bDeviceClass == 0) && (desc.bDeviceSubClass == 0)) {
             bp_attach(devs[i]);
             break;
         }
@@ -260,8 +256,11 @@ static void find_device(void)
 }
 
 
-static int LIBUSB_CALL hotplug_callback(libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
-{
+static int LIBUSB_CALL hotplug_callback(
+        libusb_context *ctx,
+        libusb_device *dev,
+        libusb_hotplug_event event,
+        void *user_data) {
     (void)ctx;
     (void)dev;
     (void)event;
@@ -272,12 +271,10 @@ static int LIBUSB_CALL hotplug_callback(libusb_context *ctx, libusb_device *dev,
 
 }
 
-static int bp_deattach(void)
-{
+static int bp_deattach(void) {
     bp_stat = idle;
 
     if (bp_handle) {
-
 /*        libusb_free_transfer(bp_transfer); */
         libusb_release_interface(bp_handle, bp_interface);
 
@@ -288,8 +285,11 @@ static int bp_deattach(void)
     return 0;
 }
 
-static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
-{
+static int LIBUSB_CALL hotplug_callback_detach(
+        libusb_context *ctx,
+        libusb_device *dev,
+        libusb_hotplug_event event,
+        void *user_data) {
     (void)ctx;
     (void)dev;
     (void)event;
@@ -304,17 +304,17 @@ static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_devic
 
 
 /******************** Send stream to STDOUT ***********************************/
-static void convFB(void)
-{
+static void convFB(void) {
     int i;
     unsigned int k;
     unsigned short *temp;
     unsigned int *ptemp;
 
-    if (xfr_id == pingbuff)
+    if (xfr_id == pingbuff) {
         stream_buff = pongbuff;
-    else
+    } else {
         stream_buff = pingbuff;
+    }
 
     temp = (unsigned short *)stream_buff;
     ptemp = (unsigned int *)ptrFB;
@@ -323,23 +323,17 @@ static void convFB(void)
         k = ptemp[i];
         temp[i] = (unsigned short) (((k>>8) & 0xF800) | ((k>>5) & 0x07E0) | ((k>>3) & 0x001F));
     }
-
 }
 
-void callbackUSBTransferComplete(struct libusb_transfer *xfr)
-{
-    switch(xfr->status)
-    {
+void callbackUSBTransferComplete(struct libusb_transfer *xfr) {
+    switch(xfr->status) {
         case LIBUSB_TRANSFER_COMPLETED:
             // Success here, data transfered are inside
             // xfr->buffer
             // and the length is
             // xfr->actual_length
-
             xfr_id = NULL;
-
             break;
-
         case LIBUSB_TRANSFER_NO_DEVICE:
         case LIBUSB_TRANSFER_ERROR:
             err("LIBUSB_TRANSFER_ERROR %d", xfr->status);
@@ -358,32 +352,35 @@ void callbackUSBTransferComplete(struct libusb_transfer *xfr)
 }
 
 /******************** Send stream to BeadaPanel ***********************************/
-static int transmitBP(void *arg)
-{
+static int transmitBP(void *arg) {
     ssize_t len;
     int ret, transferred;
     PANELLINK_STREAM_TAG tag;
 
     while (1) {
-
         if (bp_stat == busy) {
-
             /* Prepare tag header */
             tag.type = TYPE_START;
             tag.version = 1;
             memcpy(tag.protocol_name, protocol_str, sizeof tag.protocol_name);
             memset(tag.fmtstr, 0, sizeof tag.fmtstr);
 
-            if (stream_src == FB)
+            if (stream_src == FB) {
                 sprintf(tag.fmtstr, "image/x-raw, format=BGR16, height=%d, width=%d, framerate=0/1", vinfo.yres, vinfo.xres);
-            else if (stream_src == VC4)
+            } else if (stream_src == VC4) {
                 sprintf(tag.fmtstr, "image/x-raw, format=BGR16, height=%d, width=%d, framerate=0/1", 480, 800);
+            }
 
             tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
 
             /* Send tag header */
-            if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)&tag,
-                sizeof tag, &transferred, 0)) != LIBUSB_SUCCESS) {
+            if ((ret = libusb_bulk_transfer(
+                            bp_handle,
+                            bp_ep,
+                            (unsigned char *)&tag,
+                            sizeof tag,
+                            &transferred,
+                            0)) != LIBUSB_SUCCESS) {
                 debug("%s", libusb_error_name(ret));
                 bp_deattach();
                 continue;
@@ -391,23 +388,23 @@ static int transmitBP(void *arg)
 
  /*           while (bp_stat == busy) {*/
             {
-
                 /*  Send stream */
                 if (stream_src == STD_IN) {
-
                     /* Pend on read() */
                     if ((len = read(data_in, stream_buff, buff_size)) > 0) {
-
                         /* HexDump(szbuf, ret, szbuf); */
-                        if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)stream_buff, len,
-                            &transferred, 0)) != LIBUSB_SUCCESS) {
-
+                        if ((ret = libusb_bulk_transfer(
+                                        bp_handle,
+                                        bp_ep,
+                                        (unsigned char *)stream_buff,
+                                        len,
+                                        &transferred,
+                                        0)) != LIBUSB_SUCCESS) {
                             debug("libusb_bulk_transfer 2 %s", libusb_error_name(ret));
                             bp_deattach();
                             break;
                         }
-                    }
-                    else if (!len) {
+                    } else if (!len) {
                         debug("stdin: EOF");
 
                         /* Prepare tag header */
@@ -420,24 +417,25 @@ static int transmitBP(void *arg)
                         debug("read stdin error, %x", errno);
                         exit(1);
                     }
-
                 }
                 else {
-
                     /* wait for next snapshot */
                     sem_wait(&bp_sem);
 
                     if (xfr_id) {
-
-                        if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, xfr_id, buff_size,
-                              &transferred, 0)) != LIBUSB_SUCCESS) {
+                        if ((ret = libusb_bulk_transfer(
+                                        bp_handle,
+                                        bp_ep,
+                                        xfr_id,
+                                        buff_size,
+                                        &transferred,
+                                        0)) != LIBUSB_SUCCESS) {
                            debug("%s", libusb_error_name(ret));
                            bp_deattach();
                            continue;
                         }
 
                         xfr_id = NULL;
-
                         if (!(++bp_count%20)) {
                             debug("frame no. %d\n", bp_count);
                         }
@@ -451,8 +449,13 @@ static int transmitBP(void *arg)
             tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
 
             /* Send tag header */
-            if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)&tag,
-                sizeof tag, &transferred, 0)) != LIBUSB_SUCCESS) {
+            if ((ret = libusb_bulk_transfer(
+                            bp_handle,
+                            bp_ep,
+                            (unsigned char *)&tag,
+                            sizeof tag,
+                            &transferred,
+                            0)) != LIBUSB_SUCCESS) {
                 debug("%s", libusb_error_name(ret));
                 bp_deattach();
                 continue;
@@ -471,31 +474,45 @@ static int streamBP(void *arg)
     pthread_t tidp;
     libusb_context *context;
 
-    die_on((rc = libusb_init(&context)) != LIBUSB_SUCCESS, "failed to initialise libusb: %s\n", libusb_error_name(rc));
-
+    die_on((rc = libusb_init(&context)) != LIBUSB_SUCCESS,
+            "failed to initialise libusb: %s\n",
+            libusb_error_name(rc));
     die_on((rc = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) == 0,
-        "Hotplug capabilites are not supported on this platform %s\n", libusb_error_name(rc));
-
-    die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (NULL,
-                          LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED, 0, 0x4e58,
-                          0x1001, 0, hotplug_callback, NULL, &bp_cb1)),
-                          "Error registering callback %s\n",
-                          libusb_error_name(rc));
-
-    die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (NULL,
-                          LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, 0, 0x4e58,
-                          0x1001, 0, hotplug_callback_detach, NULL, &bp_cb2)),
-                          "Error registering callback %s\n",
-                          libusb_error_name(rc));
+        "Hotplug capabilites are not supported on this platform %s\n",
+        libusb_error_name(rc));
+    die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (
+                    NULL,
+                    LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
+                    0,
+                    0x4e58,
+                    0x1001,
+                    0,
+                    hotplug_callback,
+                    NULL,
+                    &bp_cb1)),
+            "Error registering callback %s\n",
+            libusb_error_name(rc));
+    die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (
+                    NULL,
+                    LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
+                    0,
+                    0x4e58,
+                    0x1001,
+                    0,
+                    hotplug_callback_detach,
+                    NULL,
+                    &bp_cb2)),
+            "Error registering callback %s\n",
+            libusb_error_name(rc));
 
     find_device();
-
-    die_on(pthread_create(&tidp, NULL, (void*(*)(void*))transmitBP, NULL) < 0, "pthread_create(streamBP)");
+    die_on(pthread_create(&tidp, NULL, (void*(*)(void*))transmitBP, NULL) < 0,
+            "pthread_create(streamBP)");
 
     while (1) {
-
-        if ((rc = libusb_handle_events(NULL)) != LIBUSB_SUCCESS)
+        if ((rc = libusb_handle_events(NULL)) != LIBUSB_SUCCESS) {
             err("libusb_handle_events() failed: %s\n", libusb_error_name(rc));
+        }
     }
 
 }
