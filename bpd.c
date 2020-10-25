@@ -296,9 +296,7 @@ static int LIBUSB_CALL hotplug_callback_detach(
     (void)user_data;
 
     info("Device detached\n");
-
     bp_deattach();
-
     return 0;
 }
 
@@ -537,8 +535,7 @@ int main(int argc, char *argv[])
     printf("%s\n", ver_str);
 
     while ((opt = getopt(argc, argv, "i:b:o:hv:f:")) != -1) {
-        switch (opt)
-        {
+        switch (opt) {
             case 'i':
                 stream_src = STD_IN;
                 if (optarg != NULL) {
@@ -565,10 +562,11 @@ int main(int argc, char *argv[])
                 break;
             case 'f':
                 if ((fps = atoi(optarg)) > 0) {
-                    if (fps < 25)
+                    if (fps < 25) {
                         fps_in_us = 40000 * (25 - fps);
-                    else
+                    } else {
                         fps_in_us = 1000;
+                    }
                 }
                 break;
         }
@@ -579,10 +577,8 @@ int main(int argc, char *argv[])
         buff_size = PL_BUFF_SIZE;
 
         die_on((data_in = open(rpipe, O_RDONLY)) < 0, "Error openning %s %d\n", rpipe, data_in);
-
     }
     else if (stream_src == FB) {
-
         die_on((fp = open (path, O_RDWR)) < 0, "Can not open framebuffer device\n");
         die_on(ioctl(fp, FBIOGET_FSCREENINFO, &finfo), "Error reading fixed information\n");
         die_on(ioctl(fp, FBIOGET_VSCREENINFO, &vinfo), "Error reading variable information\n");
@@ -600,19 +596,14 @@ int main(int argc, char *argv[])
         die_on((pongbuff = (unsigned char *)malloc(buff_size))==NULL, "malloc() error\n");
 
         die_on(sem_init(&bp_sem, 0, 0), "Error creating semaphore\n");
-
     }
     else {
-
 #ifdef BPD_VC4_ENABLE
         bcm_host_init();
-
         die_on(!(display = vc_dispmanx_display_open(0)), "Unable to open primary display\n");
-
         die_on(vc_dispmanx_display_get_info(display, &display_info), "Unable to get primary display information\n");
 
         debug("Primary display is %d x %d", display_info.width, display_info.height);
-
         die_on(!(screen_resource = vc_dispmanx_resource_create(VC_IMAGE_RGB565, 800, 480, &image_prt)),
            "Unable to create screen buffer\n");
 
@@ -622,14 +613,12 @@ int main(int argc, char *argv[])
         stream_buff = malloc(buff_size);
          die_on(sem_init(&bp_sem, 0, 0), "Error creating semaphore\n");
 #endif
-
     }
 
 
     if (stream_to == BP) {
         die_on(pthread_create(&tidp, NULL, (void*(*)(void*))streamBP, NULL) < 0, "pthread_create(streamBP)");
-    }
-    else {
+    } else {
         die_on((data_out = open(wpipe, O_WRONLY)) == -1, "Error openning %s\n", wpipe);
     }
 
@@ -637,22 +626,17 @@ int main(int argc, char *argv[])
     while (stream_src != STD_IN) {
 
         if (stream_src == VC4) {
-
 #ifdef BPD_VC4_ENABLE
             vc_dispmanx_snapshot(display, screen_resource, 0);
             vc_dispmanx_resource_read_data(screen_resource, &rect1, stream_buff, 800*2);
 #endif
-
-        }
-        else
+        } else {
             convFB();
+        }
 
         if (stream_to == STD_OUT) {
-
             write(data_out, stream_buff, buff_size);
-        }
-        else if (!xfr_id) {
-
+        } else if (!xfr_id) {
             xfr_id = stream_buff;
             sem_post(&bp_sem);
         }
