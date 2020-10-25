@@ -589,8 +589,8 @@ int main(int argc, char *argv[])
         debug("Total length=%d, xres=%d, yres=%d, bits/pixel=%d\n", bs, vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
 
         /**/
-        die_on((int)(ptrFB = (unsigned char *) mmap (0, bs,
-                   PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0)) == -1,
+        die_on((ptrFB = (unsigned char *) mmap (0, bs,
+                   PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0)) == MAP_FAILED,
                   "failed to map framebuffer device to memory.\n");
 
          buff_size = bs/2;
