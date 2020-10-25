@@ -44,7 +44,7 @@ gcc -I/usr/include/libusb-1.0 -o bpd bpd.c -L/usr/lib -lusb-1.0 -lpthread -DBPD_
 
 /******************** Messages and Errors ***********************************/
 static const char argv0[] = "bpd";
-static unsigned int verbosity = 6;
+static unsigned int verbosity = 7;
 static const char ver_str[] = "BeadaPanel Daemon Ver. 1.0";
 static const char usage_str[] = "Usage:\n"
                               " -h Help\n"
