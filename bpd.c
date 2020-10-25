@@ -462,6 +462,8 @@ static int transmitBP(void *arg) {
         /* release cpu resource */
         usleep(STREAM_DAEMON_INTERVAL);
     }
+
+    return 0;
 }
 
 /******************** Send stream to BeadaPanel ***********************************/
@@ -512,6 +514,7 @@ static int streamBP(void *arg)
         }
     }
 
+    return 0;
 }
 
 
