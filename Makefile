@@ -4,7 +4,7 @@ TARGET := bpd
 all: $(TARGET)
 
 CC := gcc
-CFLAGS :=
+CFLAGS := -Wall
 INC_FLAGS := -I/usr/include/libusb-1.0  
 LD_FLAGS = -lusb-1.0 -lpthread
 
