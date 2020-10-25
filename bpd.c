@@ -428,9 +428,9 @@ static int transmitBP(void *arg) {
                                         buff_size,
                                         &transferred,
                                         0)) != LIBUSB_SUCCESS) {
-                           debug("%s", libusb_error_name(ret));
-                           bp_deattach();
-                           continue;
+                            debug("%s", libusb_error_name(ret));
+                            bp_deattach();
+                            continue;
                         }
 
                         xfr_id = NULL;
@@ -443,7 +443,6 @@ static int transmitBP(void *arg) {
 
             /* Prepare tag header */
             tag.type = TYPE_END;
-
             tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
 
             /* Send tag header */
