@@ -52,42 +52,42 @@ static const char usage_str[] = "Usage:\n"
 
 void set_verbosity(unsigned int vb)
 {
-	verbosity = vb;
+    verbosity = vb;
 }
 
 void _msg(unsigned level, const char *fmt, ...)
 {
-	if (level < 2)
-		level = 2;
-	else if (level > 7)
-		level = 7;
+    if (level < 2)
+        level = 2;
+    else if (level > 7)
+        level = 7;
 
-	if (level <= verbosity) {
-		static const char levels[8][6] = {
-			[2] = "crit:",
-			[3] = "err: ",
-			[4] = "warn:",
-			[5] = "note:",
-			[6] = "info:",
-			[7] = "dbg: "
-		};
+    if (level <= verbosity) {
+        static const char levels[8][6] = {
+            [2] = "crit:",
+            [3] = "err: ",
+            [4] = "warn:",
+            [5] = "note:",
+            [6] = "info:",
+            [7] = "dbg: "
+        };
 
-		int _errno = errno;
-		va_list ap;
+        int _errno = errno;
+        va_list ap;
 
-		fprintf(stderr, "%s: %s ", argv0, levels[level]);
-		va_start(ap, fmt);
-		vfprintf(stderr, fmt, ap);
-		va_end(ap);
+        fprintf(stderr, "%s: %s ", argv0, levels[level]);
+        va_start(ap, fmt);
+        vfprintf(stderr, fmt, ap);
+        va_end(ap);
 
-		if (fmt[strlen(fmt) - 1] != '\n') {
-			char buffer[128];
-			strerror_r(_errno, buffer, sizeof buffer);
-			fprintf(stderr, ": (-%d) %s\n", _errno, buffer);
-		}
+        if (fmt[strlen(fmt) - 1] != '\n') {
+            char buffer[128];
+            strerror_r(_errno, buffer, sizeof buffer);
+            fprintf(stderr, ": (-%d) %s\n", _errno, buffer);
+        }
 
-		fflush(stderr);
-	}
+        fflush(stderr);
+    }
 }
 
 #define die(...)  (_msg(2, __VA_ARGS__), exit(1))
@@ -98,21 +98,21 @@ void _msg(unsigned level, const char *fmt, ...)
 #define debug(...) _msg(7, __VA_ARGS__)
 
 #define die_on(cond, ...) do { \
-	if (cond) \
-		die(__VA_ARGS__); \
-	} while (0)
+    if (cond) \
+        die(__VA_ARGS__); \
+    } while (0)
 
 /********************  Panel-Link Daemon  ***********************************/
 unsigned short checkSum16(unsigned short *buf, int nword)
 {
-	unsigned long sum;
+    unsigned long sum;
 
-	for (sum = 0; nword > 0; nword--)
-		sum += *buf++;
-	sum = (sum >> 16) + (sum & 0xffff);
-	sum += (sum >> 16);
+    for (sum = 0; nword > 0; nword--)
+        sum += *buf++;
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum += (sum >> 16);
 
-	return ~sum;
+    return ~sum;
 }
 
 /* Define for pack type, per PanelLink protocol. */
@@ -125,11 +125,11 @@ unsigned short checkSum16(unsigned short *buf, int nword)
 const char protocol_str[] = "PANEL-LINK";
 
 typedef struct _PANELLINK_STREAM_TAG {
-	char protocol_name[10];
-	unsigned char version;
-	unsigned char type;
-	char fmtstr[FMT_STR_LEN];
-	unsigned short checksum16;
+    char protocol_name[10];
+    unsigned char version;
+    unsigned char type;
+    char fmtstr[FMT_STR_LEN];
+    unsigned short checksum16;
 } __attribute__((packed)) PANELLINK_STREAM_TAG;
 
 /******************** Global Variables ***********************************/
@@ -167,55 +167,55 @@ static sem_t bp_sem;
 
 static int get_interface_ep(libusb_device *dev)
 {
-	int rc, i, j;
-	struct libusb_config_descriptor *config;
-	const struct libusb_interface_descriptor *id;
-			
-	if (LIBUSB_SUCCESS != (rc = libusb_get_config_descriptor(dev, 0, &config))) {
-		err ("Error getting device config descriptor - %s\n", libusb_error_name(rc));
-		return -1;
-	}
+    int rc, i, j;
+    struct libusb_config_descriptor *config;
+    const struct libusb_interface_descriptor *id;
+            
+    if (LIBUSB_SUCCESS != (rc = libusb_get_config_descriptor(dev, 0, &config))) {
+        err ("Error getting device config descriptor - %s\n", libusb_error_name(rc));
+        return -1;
+    }
 
-	for (i = 0; i < config->bNumInterfaces; i++) {
-		id = &config->interface[i].altsetting[0];
-		if ((id->bInterfaceClass == 255) && (id->bInterfaceSubClass == 0)) {
-			for (j = 0; j < id->bNumEndpoints; j++) {
-				debug("interface:%d endpoint:%d bmAttributes:%x Address:%x\n", i, j, 
-				id->endpoint[j].bmAttributes, id->endpoint[j].bEndpointAddress);
-			    if ((id->endpoint[j].bmAttributes == LIBUSB_TRANSFER_TYPE_BULK) 
-			    	&& ((id->endpoint[j].bEndpointAddress & LIBUSB_ENDPOINT_IN) == LIBUSB_ENDPOINT_OUT)) {
-			    	bp_interface = i;
-			    	bp_ep = id->endpoint[j].bEndpointAddress;
-	                libusb_free_config_descriptor(config);			
-	                return 0;		
-			    }				
-			}
-		}
-	} 
-	
-	err("Error getting device interface and endpoint.\n");	
-	libusb_free_config_descriptor(config);			
-	return -1;		
+    for (i = 0; i < config->bNumInterfaces; i++) {
+        id = &config->interface[i].altsetting[0];
+        if ((id->bInterfaceClass == 255) && (id->bInterfaceSubClass == 0)) {
+            for (j = 0; j < id->bNumEndpoints; j++) {
+                debug("interface:%d endpoint:%d bmAttributes:%x Address:%x\n", i, j, 
+                id->endpoint[j].bmAttributes, id->endpoint[j].bEndpointAddress);
+                if ((id->endpoint[j].bmAttributes == LIBUSB_TRANSFER_TYPE_BULK) 
+                    && ((id->endpoint[j].bEndpointAddress & LIBUSB_ENDPOINT_IN) == LIBUSB_ENDPOINT_OUT)) {
+                    bp_interface = i;
+                    bp_ep = id->endpoint[j].bEndpointAddress;
+                    libusb_free_config_descriptor(config);            
+                    return 0;        
+                }                
+            }
+        }
+    } 
+    
+    err("Error getting device interface and endpoint.\n");    
+    libusb_free_config_descriptor(config);            
+    return -1;        
 }
 
 static int bp_attach(libusb_device *dev)
 {
-	int rc;
+    int rc;
 
-	if (bp_handle) {
+    if (bp_handle) {
         info("Already attached!\n");   
         return -1;
-	}
+    }
 
-	if (get_interface_ep(dev)) {
-		err("Error getting device descriptor\n");
-		return -1;
-	}
-	
-	if (LIBUSB_SUCCESS != (rc = libusb_open (dev, &bp_handle))) {
-		err("Error opening device:%s\n", libusb_error_name(rc));
-		return -1;
-	}
+    if (get_interface_ep(dev)) {
+        err("Error getting device descriptor\n");
+        return -1;
+    }
+    
+    if (LIBUSB_SUCCESS != (rc = libusb_open (dev, &bp_handle))) {
+        err("Error opening device:%s\n", libusb_error_name(rc));
+        return -1;
+    }
 
 /*    bp_transfer = libusb_alloc_transfer(0); */
 
@@ -223,107 +223,107 @@ static int bp_attach(libusb_device *dev)
     {
         err("claim interface error:%s\n", libusb_error_name(rc));
 
-	    if (bp_handle) {
-		    libusb_close(bp_handle);
-		    bp_handle = NULL;
-	    }
+        if (bp_handle) {
+            libusb_close(bp_handle);
+            bp_handle = NULL;
+        }
         return -1;
     }
 
     xfr_id = NULL;
     bp_count = 0;
     bp_stat = busy;
-	return 0;	
+    return 0;    
 }
 
 static void find_device(void) 
-{	
-	int i;
-	libusb_device **devs;
+{    
+    int i;
+    libusb_device **devs;
     struct libusb_device_descriptor desc;
     
-	if (libusb_get_device_list(NULL, &devs) < 0)
-		return;
+    if (libusb_get_device_list(NULL, &devs) < 0)
+        return;
 
-	for (i = 0; devs[i]; ++i) {
+    for (i = 0; devs[i]; ++i) {
         libusb_get_device_descriptor(devs[i], &desc);
 
 /*        debug("desc.idVendor =%x\n", desc.idVendor); */
-	    if ((desc.idVendor == 0x4e58) && (desc.idProduct == 0x1001) && 
-	    	(desc.bDeviceClass == 0) && (desc.bDeviceSubClass == 0)) {
-		    bp_attach(devs[i]);
-		    break;
-	    }
-	}
-	
-	libusb_free_device_list(devs, 1);
+        if ((desc.idVendor == 0x4e58) && (desc.idProduct == 0x1001) && 
+            (desc.bDeviceClass == 0) && (desc.bDeviceSubClass == 0)) {
+            bp_attach(devs[i]);
+            break;
+        }
+    }
+    
+    libusb_free_device_list(devs, 1);
 }
-						
+                        
 
 static int LIBUSB_CALL hotplug_callback(libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
 {
-	(void)ctx;
-	(void)dev;
-	(void)event;
-	(void)user_data;
+    (void)ctx;
+    (void)dev;
+    (void)event;
+    (void)user_data;
 
-	info("Device attached\n");	
-	return(bp_attach(dev));
+    info("Device attached\n");    
+    return(bp_attach(dev));
 
 }
 
 static int bp_deattach(void) 
 {
-	bp_stat = idle;
-	
-	if (bp_handle) {
+    bp_stat = idle;
+    
+    if (bp_handle) {
 
 /*        libusb_free_transfer(bp_transfer); */
         libusb_release_interface(bp_handle, bp_interface);
 
-		libusb_close(bp_handle);
-		bp_handle = NULL;
-	}
-	
-	return 0;
+        libusb_close(bp_handle);
+        bp_handle = NULL;
+    }
+    
+    return 0;
 }
 
 static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
 {
-	(void)ctx;
-	(void)dev;
-	(void)event;
-	(void)user_data;
+    (void)ctx;
+    (void)dev;
+    (void)event;
+    (void)user_data;
 
-	info("Device detached\n");
+    info("Device detached\n");
 
     bp_deattach();
 
-	return 0;
+    return 0;
 }
 
 
 /******************** Send stream to STDOUT ***********************************/
 static void convFB(void)
 {
-	int i;
-	unsigned int k;
-	unsigned short *temp;
-	unsigned int *ptemp;
+    int i;
+    unsigned int k;
+    unsigned short *temp;
+    unsigned int *ptemp;
 
-	if (xfr_id == pingbuff)
-		stream_buff = pongbuff;
-	else
-		stream_buff = pingbuff;	
-			
-	temp = (unsigned short *)stream_buff;
-	ptemp = (unsigned int *)ptrFB;
-	
-	for (i = 0; i < buff_size/2; i++) {
-		k = ptemp[i];
-        temp[i] = (unsigned short) (((k>>8) & 0xF800) | ((k>>5) & 0x07E0) | ((k>>3) & 0x001F));		
-	}	
-		
+    if (xfr_id == pingbuff)
+        stream_buff = pongbuff;
+    else
+        stream_buff = pingbuff;    
+            
+    temp = (unsigned short *)stream_buff;
+    ptemp = (unsigned int *)ptrFB;
+    
+    for (i = 0; i < buff_size/2; i++) {
+        k = ptemp[i];
+        temp[i] = (unsigned short) (((k>>8) & 0xF800) | ((k>>5) & 0x07E0) | ((k>>3) & 0x001F));        
+    }    
+        
 }
 
 void callbackUSBTransferComplete(struct libusb_transfer *xfr)
@@ -337,7 +337,7 @@ void callbackUSBTransferComplete(struct libusb_transfer *xfr)
             // xfr->actual_length
  
             xfr_id = NULL;           
-            		
+                    
             break;
 
         case LIBUSB_TRANSFER_NO_DEVICE:
@@ -361,76 +361,76 @@ void callbackUSBTransferComplete(struct libusb_transfer *xfr)
 static int transmitBP(void *arg)
 {
     ssize_t len;
-	int ret, transferred;
+    int ret, transferred;
     PANELLINK_STREAM_TAG tag;
-                    	
+                        
     while (1) {
  
-    	if (bp_stat == busy) {                                  
+        if (bp_stat == busy) {                                  
 
             /* Prepare tag header */
-		    tag.type = TYPE_START;
-		    tag.version = 1;
-		    memcpy(tag.protocol_name, protocol_str, sizeof tag.protocol_name);
-		    memset(tag.fmtstr, 0, sizeof tag.fmtstr);
-		    
-		    if (stream_src == FB) 
+            tag.type = TYPE_START;
+            tag.version = 1;
+            memcpy(tag.protocol_name, protocol_str, sizeof tag.protocol_name);
+            memset(tag.fmtstr, 0, sizeof tag.fmtstr);
+            
+            if (stream_src == FB) 
                 sprintf(tag.fmtstr, "image/x-raw, format=BGR16, height=%d, width=%d, framerate=0/1", vinfo.yres, vinfo.xres);
             else if (stream_src == VC4)
-                sprintf(tag.fmtstr, "image/x-raw, format=BGR16, height=%d, width=%d, framerate=0/1", 480, 800);	
+                sprintf(tag.fmtstr, "image/x-raw, format=BGR16, height=%d, width=%d, framerate=0/1", 480, 800);    
             
-		    tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
+            tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
  
-    		/* Send tag header */
+            /* Send tag header */
             if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)&tag, 
-            	sizeof tag, &transferred, 0)) != LIBUSB_SUCCESS) {
+                sizeof tag, &transferred, 0)) != LIBUSB_SUCCESS) {
                 debug("%s", libusb_error_name(ret));
                 bp_deattach();
                 continue;
             }
-    		
- /*   		while (bp_stat == busy) {*/
+            
+ /*           while (bp_stat == busy) {*/
             {
 
-    			/*  Send stream */
-    			if (stream_src == STD_IN) {
+                /*  Send stream */
+                if (stream_src == STD_IN) {
 
-    				/* Pend on read() */
-	                if ((len = read(data_in, stream_buff, buff_size)) > 0) {
+                    /* Pend on read() */
+                    if ((len = read(data_in, stream_buff, buff_size)) > 0) {
 
                         /* HexDump(szbuf, ret, szbuf); */
                         if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)stream_buff, len, 
-                        	&transferred, 0)) != LIBUSB_SUCCESS) {
+                            &transferred, 0)) != LIBUSB_SUCCESS) {
 
                             debug("libusb_bulk_transfer 2 %s", libusb_error_name(ret));
                             bp_deattach();
                             break;
                         }
                     }
-	                else if (!len) {
-		                debug("stdin: EOF");
+                    else if (!len) {
+                        debug("stdin: EOF");
 
                         /* Prepare tag header */
-		                tag.type = TYPE_END;           
-		                tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
+                        tag.type = TYPE_END;           
+                        tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
                         libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)&tag, sizeof tag, &transferred, 0);
 
-		                exit(1);
-	                } else {
-		                debug("read stdin error, %x", errno);
-		                exit(1);
-	                } 
-	                   
-    			}
-    			else {
+                        exit(1);
+                    } else {
+                        debug("read stdin error, %x", errno);
+                        exit(1);
+                    } 
+                       
+                }
+                else {
 
                     /* wait for next snapshot */
-    	            sem_wait(&bp_sem);   
+                    sem_wait(&bp_sem);   
 
                     if (xfr_id) {
 
                         if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, xfr_id, buff_size, 
-            	              &transferred, 0)) != LIBUSB_SUCCESS) {
+                              &transferred, 0)) != LIBUSB_SUCCESS) {
                            debug("%s", libusb_error_name(ret));
                            bp_deattach();
                            continue;
@@ -439,75 +439,75 @@ static int transmitBP(void *arg)
                         xfr_id = NULL;
  
                         if (!(++bp_count%20)) {
-                    	    debug("frame no. %d\n", bp_count);
+                            debug("frame no. %d\n", bp_count);
                         }
-                    }                        	                  				
-    			}    				
-    		}
+                    }                                                              
+                }                    
+            }
  
             /* Prepare tag header */
-		    tag.type = TYPE_END;
+            tag.type = TYPE_END;
             
-		    tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
+            tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
  
-    		/* Send tag header */
+            /* Send tag header */
             if ((ret = libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)&tag, 
-            	sizeof tag, &transferred, 0)) != LIBUSB_SUCCESS) {
+                sizeof tag, &transferred, 0)) != LIBUSB_SUCCESS) {
                 debug("%s", libusb_error_name(ret));
                 bp_deattach();
                 continue;
             }
-    	}
+        }
 
-        /* release cpu resource */    		
-        usleep(STREAM_DAEMON_INTERVAL);   	
+        /* release cpu resource */            
+        usleep(STREAM_DAEMON_INTERVAL);       
     }
 }
 
 /******************** Send stream to BeadaPanel ***********************************/
 static int streamBP(void *arg)
 {
-	int rc;
+    int rc;
     pthread_t tidp;
     libusb_context *context;
     
-	die_on((rc = libusb_init(&context)) != LIBUSB_SUCCESS, "failed to initialise libusb: %s\n", libusb_error_name(rc));
+    die_on((rc = libusb_init(&context)) != LIBUSB_SUCCESS, "failed to initialise libusb: %s\n", libusb_error_name(rc));
         
-	die_on((rc = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) == 0, 
-	    "Hotplug capabilites are not supported on this platform %s\n", libusb_error_name(rc));
+    die_on((rc = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) == 0, 
+        "Hotplug capabilites are not supported on this platform %s\n", libusb_error_name(rc));
 
-	die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (NULL, 
-	                      LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED, 0, 0x4e58,
-		                  0x1001, 0, hotplug_callback, NULL, &bp_cb1)), 
-		                  "Error registering callback %s\n", 
-		                  libusb_error_name(rc));
+    die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (NULL, 
+                          LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED, 0, 0x4e58,
+                          0x1001, 0, hotplug_callback, NULL, &bp_cb1)), 
+                          "Error registering callback %s\n", 
+                          libusb_error_name(rc));
 
-	die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (NULL, 
-	                      LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, 0, 0x4e58,
-		                  0x1001, 0, hotplug_callback_detach, NULL, &bp_cb2)), 
-		                  "Error registering callback %s\n", 
-		                  libusb_error_name(rc));		                  
-			                  
+    die_on(LIBUSB_SUCCESS != (rc = libusb_hotplug_register_callback (NULL, 
+                          LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, 0, 0x4e58,
+                          0x1001, 0, hotplug_callback_detach, NULL, &bp_cb2)), 
+                          "Error registering callback %s\n", 
+                          libusb_error_name(rc));                          
+                              
     find_device();
 
-    die_on(pthread_create(&tidp, NULL, (void*(*)(void*))transmitBP, NULL) < 0, "pthread_create(streamBP)");    	
-    	        
-	while (1) {
+    die_on(pthread_create(&tidp, NULL, (void*(*)(void*))transmitBP, NULL) < 0, "pthread_create(streamBP)");        
+                
+    while (1) {
 
-		if ((rc = libusb_handle_events(NULL)) != LIBUSB_SUCCESS)
-	        err("libusb_handle_events() failed: %s\n", libusb_error_name(rc));
-	}          	
+        if ((rc = libusb_handle_events(NULL)) != LIBUSB_SUCCESS)
+            err("libusb_handle_events() failed: %s\n", libusb_error_name(rc));
+    }              
  
 }
 
 
 int main(int argc, char *argv[])
 {
-	int rc, fp, opt, fps, bs;
+    int rc, fp, opt, fps, bs;
     pthread_t tidp;
-    char path[FB_PATH_LENGTH] = "/dev/fb0";	    
-    char rpipe[FB_PATH_LENGTH] = "/dev/bpread";	    
-    char wpipe[FB_PATH_LENGTH] = "/dev/bpwrite";	    
+    char path[FB_PATH_LENGTH] = "/dev/fb0";        
+    char rpipe[FB_PATH_LENGTH] = "/dev/bpread";        
+    char wpipe[FB_PATH_LENGTH] = "/dev/bpwrite";        
 
 #ifdef BPD_VC4_ENABLE
     DISPMANX_DISPLAY_HANDLE_T display;
@@ -523,42 +523,42 @@ int main(int argc, char *argv[])
         switch (opt)
         {
             case 'i':
-    			stream_src = STD_IN; 
-    			if (optarg != NULL) {
-    		        strcpy(rpipe, optarg);
-    		    }
-	            break;
+                stream_src = STD_IN; 
+                if (optarg != NULL) {
+                    strcpy(rpipe, optarg);
+                }
+                break;
             case 'b':
-   		        stream_src = FB;
-    			if (optarg != NULL) {
-    		        strcpy(path, optarg);
-    		    }
-	            break;
+                   stream_src = FB;
+                if (optarg != NULL) {
+                    strcpy(path, optarg);
+                }
+                break;
             case 'o':
-    			stream_to = STD_OUT;
-    			if (optarg != NULL) {
-    		        strcpy(wpipe, optarg);
-    		    }
-	            break;
+                stream_to = STD_OUT;
+                if (optarg != NULL) {
+                    strcpy(wpipe, optarg);
+                }
+                break;
             case 'h':
-    			printf("%s\n", usage_str);
-	            exit(0);
+                printf("%s\n", usage_str);
+                exit(0);
             case 'v':
-			    set_verbosity(atoi(optarg));
-			    break;
+                set_verbosity(atoi(optarg));
+                break;
             case 'f':
-            	if ((fps = atoi(optarg)) > 0) {
-            		if (fps < 25)
-			            fps_in_us = 40000 * (25 - fps);
-			        else 
-			        	fps_in_us = 1000;
-			    }
-			    break;
-	    }
+                if ((fps = atoi(optarg)) > 0) {
+                    if (fps < 25)
+                        fps_in_us = 40000 * (25 - fps);
+                    else 
+                        fps_in_us = 1000;
+                }
+                break;
+        }
     }
     
     if (stream_src == STD_IN) {
-        stream_buff = malloc(PL_BUFF_SIZE);	
+        stream_buff = malloc(PL_BUFF_SIZE);    
         buff_size = PL_BUFF_SIZE;
 
         die_on((data_in = open(rpipe, O_RDONLY)) < 0, "Error openning %s %d\n", rpipe, data_in);
@@ -566,27 +566,27 @@ int main(int argc, char *argv[])
     }
     else if (stream_src == FB) {
  
-	    die_on((fp = open (path, O_RDWR)) < 0, "Can not open framebuffer device\n");
-	    die_on(ioctl(fp, FBIOGET_FSCREENINFO, &finfo), "Error reading fixed information\n");
-	    die_on(ioctl(fp, FBIOGET_VSCREENINFO, &vinfo), "Error reading variable information\n");	 
+        die_on((fp = open (path, O_RDWR)) < 0, "Can not open framebuffer device\n");
+        die_on(ioctl(fp, FBIOGET_FSCREENINFO, &finfo), "Error reading fixed information\n");
+        die_on(ioctl(fp, FBIOGET_VSCREENINFO, &vinfo), "Error reading variable information\n");     
  
- 	    bs = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
+         bs = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
         debug("Total length=%d, xres=%d, yres=%d, bits/pixel=%d\n", bs, vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
         
-	    /**/
-	    die_on((int)(ptrFB = (unsigned char *) mmap (0, bs, 
-	               PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0)) == -1, 
-	              "failed to map framebuffer device to memory.\n");
+        /**/
+        die_on((int)(ptrFB = (unsigned char *) mmap (0, bs, 
+                   PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0)) == -1, 
+                  "failed to map framebuffer device to memory.\n");
 
- 	    buff_size = bs/2;	              
-	    die_on((pingbuff = (unsigned char *)malloc(buff_size))==NULL, "malloc() error\n");
-	    die_on((pongbuff = (unsigned char *)malloc(buff_size))==NULL, "malloc() error\n");
+         buff_size = bs/2;                  
+        die_on((pingbuff = (unsigned char *)malloc(buff_size))==NULL, "malloc() error\n");
+        die_on((pongbuff = (unsigned char *)malloc(buff_size))==NULL, "malloc() error\n");
 
-	    die_on(sem_init(&bp_sem, 0, 0), "Error creating semaphore\n");
+        die_on(sem_init(&bp_sem, 0, 0), "Error creating semaphore\n");
 
     } 
     else {
-    	
+        
 #ifdef BPD_VC4_ENABLE
         bcm_host_init();
 
@@ -603,20 +603,20 @@ int main(int argc, char *argv[])
 
         buff_size = 800*480*2;  
         stream_buff = malloc(buff_size);
- 	    die_on(sem_init(&bp_sem, 0, 0), "Error creating semaphore\n");       	
+         die_on(sem_init(&bp_sem, 0, 0), "Error creating semaphore\n");           
 #endif
 
     }
 
 
     if (stream_to == BP) {
-    	die_on(pthread_create(&tidp, NULL, (void*(*)(void*))streamBP, NULL) < 0, "pthread_create(streamBP)");
+        die_on(pthread_create(&tidp, NULL, (void*(*)(void*))streamBP, NULL) < 0, "pthread_create(streamBP)");
     }  
     else {
         die_on((data_out = open(wpipe, O_WRONLY)) == -1, "Error openning %s\n", wpipe);
     }
 
-  	
+      
     while (stream_src != STD_IN) {
 
         if (stream_src == VC4) {
@@ -628,26 +628,26 @@ int main(int argc, char *argv[])
 
         }
         else 
-        	convFB();   
+            convFB();   
  
         if (stream_to == STD_OUT) {
 
             write(data_out, stream_buff, buff_size);
         }
-	    else if (!xfr_id) {
+        else if (!xfr_id) {
 
-		    xfr_id = stream_buff;
-	        sem_post(&bp_sem);
+            xfr_id = stream_buff;
+            sem_post(&bp_sem);
         }  
                   
         /* wait for next snapshot */
-        usleep(fps_in_us);   	
+        usleep(fps_in_us);       
     }
 
     if (stream_to == BP)
         pthread_join(tidp, NULL);
         
-	return 0;
+    return 0;
 }
 
 
