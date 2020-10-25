@@ -17,6 +17,6 @@ $(TARGET): $(SRCS)
 	$(CC) $< $(CFLAGS) $(INC_FLAGS) $(LD_FLAGS) -o $@
 
 clean:
-	$(RM) -f $(TARGET)
+	$(RM) $(TARGET)
 
 .PHONY: all clean
