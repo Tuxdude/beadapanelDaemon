@@ -102,17 +102,6 @@ void _msg(unsigned level, const char *fmt, ...) {
     } while (0)
 
 /********************  Panel-Link Daemon  ***********************************/
-unsigned short checkSum16(unsigned short *buf, int nword) {
-    unsigned long sum;
-
-    for (sum = 0; nword > 0; nword--) {
-        sum += *buf++;
-    }
-    sum = (sum >> 16) + (sum & 0xffff);
-    sum += (sum >> 16);
-
-    return ~sum;
-}
 
 /* Define for pack type, per PanelLink protocol. */
 #define TYPE_START 1
@@ -130,6 +119,20 @@ typedef struct _PANELLINK_STREAM_TAG {
     char fmtstr[FMT_STR_LEN];
     unsigned short checksum16;
 } __attribute__((packed)) PANELLINK_STREAM_TAG;
+
+unsigned short checkSum16(void *tag) {
+    int nword = (sizeof(PANELLINK_STREAM_TAG) - 2) / 2;
+    unsigned short *buf = (unsigned short *)tag;
+    unsigned long sum;
+
+    for (sum = 0; nword > 0; nword--) {
+        sum += *buf++;
+    }
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum += (sum >> 16);
+
+    return ~sum;
+}
 
 /******************** Global Variables ***********************************/
 /* Due to limit of linux read/write IO, we have to have a max buffer size of 12800. */
@@ -369,7 +372,7 @@ static int transmitBP(void *arg) {
                 sprintf(tag.fmtstr, "image/x-raw, format=BGR16, height=%d, width=%d, framerate=0/1", 480, 800);
             }
 
-            tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
+            tag.checksum16 = checkSum16(&tag);
 
             /* Send tag header */
             if ((ret = libusb_bulk_transfer(
@@ -407,7 +410,7 @@ static int transmitBP(void *arg) {
 
                         /* Prepare tag header */
                         tag.type = TYPE_END;
-                        tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
+                        tag.checksum16 = checkSum16(&tag);
                         libusb_bulk_transfer(bp_handle, bp_ep, (unsigned char *)&tag, sizeof tag, &transferred, 0);
 
                         exit(1);
@@ -443,7 +446,7 @@ static int transmitBP(void *arg) {
 
             /* Prepare tag header */
             tag.type = TYPE_END;
-            tag.checksum16 = checkSum16((unsigned short *)&tag, (sizeof tag - 2) / 2);
+            tag.checksum16 = checkSum16(&tag);
 
             /* Send tag header */
             if ((ret = libusb_bulk_transfer(
