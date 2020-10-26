@@ -647,8 +647,9 @@ int main(int argc, char *argv[])
         usleep(fps_in_us);
     }
 
-    if (stream_to == BP)
+    if (stream_to == BP) {
         pthread_join(tidp, NULL);
+    }
 
     return 0;
 }
